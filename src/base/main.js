@@ -4,19 +4,13 @@ import {
   getText,
   findNode,
   getRandomFloat,
+  runOnce,
   sleep,
   getBrowserVersion
 } from 'utils/common';
 import {targetEnv, clientAppVersion} from 'utils/config';
 
 function main() {
-  // Script may be injected multiple times.
-  if (self.baseModule) {
-    return;
-  } else {
-    self.baseModule = true;
-  }
-
   let solverWorking = false;
   let solverButton = null;
 
@@ -528,4 +522,6 @@ function main() {
   init();
 }
 
-main();
+if (runOnce('baseModule')) {
+  main();
+}
