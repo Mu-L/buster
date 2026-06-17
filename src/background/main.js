@@ -13,7 +13,9 @@ import {
   showOptionsPage,
   setAppVersion,
   getStartupState,
-  insertBaseModule
+  insertBaseModule,
+  getPromptApiStatus,
+  initPromptApi
 } from 'utils/app';
 import {
   executeScript,
@@ -382,11 +384,6 @@ async function loadSecrets() {
 
     data = JSON.parse(aes.decrypt(ciphertext, key).toString(utf8));
   } catch (err) {
-    const {speechService} = await storage.get('speechService');
-    if (speechService === 'witSpeechApiDemo') {
-      await storage.set({speechService: 'witSpeechApi'});
-    }
-
     data = {};
   } finally {
     if (mv3) {
@@ -400,7 +397,7 @@ async function loadSecrets() {
 }
 
 async function getWitSpeechApiKey(speechService, language) {
-  if (speechService === 'witSpeechApiDemo') {
+  if (speechService === 'managed') {
     const secrets = await loadSecrets();
 
     const apiKeys = secrets.witApiKeys;
@@ -637,6 +634,39 @@ async function getMicrosoftSpeechApiResult(
   }
 }
 
+async function getPromptApiResult(audioContent) {
+  const result = {};
+
+  const session = await initPromptApi();
+
+  if (session) {
+    try {
+      const data = await session.prompt([
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              value:
+                'transcribe this audio, the output cannot contain punctuation or uppercase letters'
+            },
+            {type: 'audio', value: audioContent}
+          ]
+        }
+      ]);
+
+      if (data) {
+        result.text = data.trim();
+      }
+    } catch (err) {
+    } finally {
+      session.destroy();
+    }
+  }
+
+  return result;
+}
+
 async function transcribeAudio(audioUrl, lang) {
   const audioBuffer = await (
     await fetch(audioUrl, {credentials: 'omit'})
@@ -667,12 +697,30 @@ async function transcribeAudio(audioUrl, lang) {
 
   let solution;
 
-  const {speechService, tryEnglishSpeechModel} = await storage.get([
+  const {
+    speechService,
+    tryEnglishSpeechModel,
+    enableManagedLocalServices,
+    enableManagedRemoteServices
+  } = await storage.get([
     'speechService',
-    'tryEnglishSpeechModel'
+    'tryEnglishSpeechModel',
+    'enableManagedLocalServices',
+    'enableManagedRemoteServices'
   ]);
 
-  if (['witSpeechApiDemo', 'witSpeechApi'].includes(speechService)) {
+  if (
+    speechService === 'managed' &&
+    enableManagedLocalServices &&
+    (await getPromptApiStatus()) === 'available'
+  ) {
+    const result = await getPromptApiResult(audioContent);
+
+    solution = result.text;
+  } else if (
+    speechService === 'witSpeechApi' ||
+    (speechService === 'managed' && enableManagedRemoteServices && !solution)
+  ) {
     const language = captchaWitSpeechApiLangCodes[lang] || 'english';
 
     const apiKey = await getWitSpeechApiKey(speechService, language);
@@ -788,7 +836,10 @@ async function transcribeAudio(audioUrl, lang) {
   }
 
   if (!solution) {
-    if (['witSpeechApiDemo', 'witSpeechApi'].includes(speechService)) {
+    if (
+      speechService === 'witSpeechApi' ||
+      (speechService === 'managed' && enableManagedRemoteServices)
+    ) {
       showNotification({
         messageId: 'error_captchaNotSolvedWitai',
         timeout: 20000

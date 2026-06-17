@@ -19,6 +19,11 @@
     "description": "Title of the option."
   },
 
+  "optionValue_speechService_managed": {
+    "message": "Managed",
+    "description": "Value of the option."
+  },
+
   "optionValue_speechService_googleSpeechApi": {
     "message": "Google Cloud Speech-to-Text",
     "description": "Value of the option."
@@ -31,11 +36,6 @@
 
   "optionValue_speechService_microsoftSpeechApi": {
     "message": "Microsoft Azure Speech to Text",
-    "description": "Value of the option."
-  },
-
-  "optionValue_speechService_witSpeechApiDemo": {
-    "message": "Wit.ai (managed)",
     "description": "Value of the option."
   },
 
@@ -269,6 +269,16 @@
     "description": "Title of the option."
   },
 
+  "optionTitle_localServices": {
+    "message": "Local services",
+    "description": "Title of the option."
+  },
+
+  "optionTitle_remoteServices": {
+    "message": "Remote services",
+    "description": "Title of the option."
+  },
+
   "optionValue_witSpeechApiLang_arabic": {
     "message": "Arabic",
     "description": "Value of the option."
@@ -499,6 +509,22 @@
   "linkText_apiGuide": {
     "message": "How to get an API key?",
     "description": "Text of the link."
+  },
+
+  "linkText_learnMore": {
+    "message": "Learn more",
+    "description": "Text of the link."
+  },
+
+  "pageContent_status": {
+    "message": "Status: $STATUS$",
+    "description": "Page content.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "not supported"
+      }
+    }
   },
 
   "pageContent_optionClientAppDownloadDesc": {

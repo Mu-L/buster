@@ -12,7 +12,9 @@ const optionKeys = [
   'autoUpdateClientApp',
   'navigateWithKeyboard',
   'appTheme',
-  'showContribPage'
+  'showContribPage',
+  'enableManagedLocalServices',
+  'enableManagedRemoteServices'
 ];
 
 const clientAppPlatforms = [

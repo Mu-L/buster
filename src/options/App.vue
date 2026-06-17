@@ -15,6 +15,39 @@
           </vn-select>
         </div>
 
+        <div class="option" v-if="options.speechService === 'managed'">
+          <vn-switch
+            :label="getText('optionTitle_localServices')"
+            v-model="options.enableManagedLocalServices"
+          ></vn-switch>
+        </div>
+
+        <div
+          v-if="
+            options.speechService === 'managed' &&
+            options.enableManagedLocalServices
+          "
+        >
+          {{ getText('pageContent_status', localServiceStatus) }}
+        </div>
+
+        <div class="option" v-if="options.speechService === 'managed'">
+          <vn-switch
+            :label="getText('optionTitle_remoteServices')"
+            v-model="options.enableManagedRemoteServices"
+          ></vn-switch>
+        </div>
+
+        <a
+          class="service-guide"
+          v-if="options.speechService === 'managed'"
+          target="_blank"
+          rel="noreferrer"
+          href="https://github.com/dessant/buster/wiki/Managed-services"
+        >
+          {{ getText('linkText_learnMore') }}
+        </a>
+
         <div
           class="option text-field"
           v-if="options.speechService === 'googleSpeechApi'"
@@ -302,7 +335,8 @@ import {
   showSponsorPage,
   getAppTheme,
   getSponsorUrl,
-  getSponsorLogo
+  getSponsorLogo,
+  getManagedLocalServiceStatus
 } from 'utils/app';
 import {getText} from 'utils/common';
 import {
@@ -336,7 +370,7 @@ export default {
         ...getListItems(
           {
             speechService: [
-              'witSpeechApiDemo',
+              'managed',
               'googleSpeechApi',
               'witSpeechApi',
               'ibmSpeechApi',
@@ -376,6 +410,7 @@ export default {
       installGuideUrl: '',
       contributionsEnabled: true,
       sponsorsEnabled: true,
+      localServiceStatus: '',
 
       theme: '',
 
@@ -393,7 +428,9 @@ export default {
         autoUpdateClientApp: false,
         navigateWithKeyboard: false,
         appTheme: '',
-        showContribPage: false
+        showContribPage: false,
+        enableManagedLocalServices: false,
+        enableManagedRemoteServices: false
       }
     };
   },
@@ -423,8 +460,25 @@ export default {
         this.$watch(
           `options.${option}`,
           async function (value) {
-            await storage.set({[option]: toRaw(value)});
-            await browser.runtime.sendMessage({id: 'optionChange'});
+            if (option.startsWith('enableManaged')) {
+              if (
+                this.options.enableManagedLocalServices ||
+                this.options.enableManagedRemoteServices
+              ) {
+                await storage.set({
+                  enableManagedLocalServices: toRaw(
+                    this.options.enableManagedLocalServices
+                  ),
+                  enableManagedRemoteServices: toRaw(
+                    this.options.enableManagedRemoteServices
+                  )
+                });
+                await browser.runtime.sendMessage({id: 'optionChange'});
+              }
+            } else {
+              await storage.set({[option]: toRaw(value)});
+              await browser.runtime.sendMessage({id: 'optionChange'});
+            }
           },
           {deep: true}
         );
@@ -447,6 +501,7 @@ export default {
       });
 
       this.verifyClientApp();
+      this.verifyLocalServices();
 
       this.dataLoaded = true;
     },
@@ -479,6 +534,10 @@ export default {
       }
 
       this.clientAppVerified = true;
+    },
+
+    verifyLocalServices: async function () {
+      this.localServiceStatus = await getManagedLocalServiceStatus();
     },
 
     setWitSpeechApiLangOptions: function () {

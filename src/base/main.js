@@ -90,15 +90,16 @@ function main() {
 
   async function setSolverButtonTooltip(button) {
     if (targetEnv === 'firefox') {
-      const {speechService} = await storage.get('speechService');
+      let {speechService} = await storage.get('speechService');
+      if (speechService === 'managed') {
+        speechService = 'witSpeechApi';
+      }
 
       button.setAttribute(
         'data-tooltip',
         getText(
           'buttonTooltip_solve',
-          getText(
-            `optionValue_speechService_${speechService.replace('Demo', '')}`
-          )
+          getText(`optionValue_speechService_${speechService}`)
         )
       );
     } else {
