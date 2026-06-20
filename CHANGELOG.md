@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [3.4.0](https://github.com/dessant/buster/compare/v3.3.0...v3.4.0) (2026-06-20)
+
+
+### Features
+
+* solve challenges with a local Whisper model ([957d674](https://github.com/dessant/buster/commit/957d67469864e951de9a78764034e99c1263678c)), closes [#467](https://github.com/dessant/buster/issues/467)
+
 ## [3.3.0](https://github.com/dessant/buster/compare/v3.2.1...v3.3.0) (2026-06-17)
 
 
